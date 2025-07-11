@@ -6,6 +6,7 @@ from rapidfuzz import fuzz
 from collections import defaultdict
 import hashlib
 import string
+import os
 
 def google_news_rss(query):
     q = query.replace(" ", "+")
@@ -416,10 +417,13 @@ html_output = f"""<!DOCTYPE html>
 </head>
 <body>
     <div class="container">
-        <h1>
-            🧾 Centerstone Capital – Daily M&A Landscape
-            <div class="subtitle">{TODAY.strftime('%A, %B %d, %Y')}</div>
-        </h1>
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+    <h1>
+        🧾 Centerstone Capital – Daily M&A Landscape
+        <div class="subtitle">{TODAY.strftime('%A, %B %d, %Y')}</div>
+    </h1>
+    <a href="archives/index.html" style="font-size: 0.9em; color: #3498db; text-decoration: none;">📚 Archives</a>
+</div>
         
         <div class="stats">
             <strong>📊 Daily Summary:</strong> {len(deals)} unique M&A deals identified and curated
@@ -476,3 +480,43 @@ with open("index.html", "w", encoding="utf-8") as f:
     f.write(html_output)
 
 print(f"[✅] Generated report with {len(deals)} deals saved to index.html")
+
+archive_dir = f"archives/{TODAY.strftime('%Y-%m')}"
+archive_path = f"{archive_dir}/{TODAY.strftime('%d')}.html"
+
+os.makedirs(archive_dir, exist_ok=True)
+with open(archive_path, "w", encoding="utf-8") as f:
+    f.write(html_output)
+print(f"[🗂️] Saved archive to {archive_path}")
+
+archive_index_html = """<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Archives – Centerstone M&A Landscape</title>
+    <style>
+        body { font-family: sans-serif; padding: 40px; background-color: #f8f9fa; }
+        h1 { color: #2c3e50; margin-bottom: 30px; }
+        ul { list-style: none; padding: 0; }
+        li { margin: 10px 0; }
+        a { color: #3498db; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <h1>📚 M&A Archives</h1>
+"""
+
+from glob import glob
+
+archive_index_html += "<ul>\n"
+for path in sorted(glob("archives/*/*.html"), reverse=True):
+    if "index.html" in path:
+        continue
+    date_str = path.replace("archives/", "").replace(".html", "").replace("/", "-")
+    archive_index_html += f'<li><a href="{path}">{date_str}</a></li>\n'
+archive_index_html += "</ul>\n</body></html>"
+
+with open("archives/index.html", "w", encoding="utf-8") as f:
+    f.write(archive_index_html)
+print("[🧾] Updated archives index")
