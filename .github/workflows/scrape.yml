@@ -24,6 +24,10 @@ jobs:
       - name: Run scraper and generate HTML
         run: python generate_html.py
 
+      - name: Test token permissions
+        run: |
+          curl -H "Authorization: token ${{ secrets.GH_PAT }}" https://api.github.com/repos/${{ github.repository }}
+
       - name: Commit and push changes
         run: |
           git config user.name "GitHub Actions"
