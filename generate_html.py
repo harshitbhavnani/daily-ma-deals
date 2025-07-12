@@ -475,6 +475,15 @@ html_output += '''
 </html>
 '''
 
+# Archive yesterday's main index.html if it exists
+yesterday = TODAY - timedelta(days=1)
+yesterday_archive_path = f"archives/{yesterday.strftime('%Y-%m')}/{yesterday.strftime('%d')}.html"
+
+if os.path.exists("index.html") and not os.path.exists(yesterday_archive_path):
+    os.makedirs(os.path.dirname(yesterday_archive_path), exist_ok=True)
+    os.rename("index.html", yesterday_archive_path)
+    print(f"[📦] Archived yesterday's report to {yesterday_archive_path}")
+
 # Write output
 with open("index.html", "w", encoding="utf-8") as f:
     f.write(html_output)
@@ -514,7 +523,8 @@ for path in sorted(glob("archives/*/*.html"), reverse=True):
     if "index.html" in path:
         continue
     date_str = path.replace("archives/", "").replace(".html", "").replace("/", "-")
-    archive_index_html += f'<li><a href="{path}">{date_str}</a></li>\n'
+    rel_path = path.replace("archives/", "")
+    archive_index_html += f'<li><a href="{rel_path}">{date_str}</a></li>\n'
 archive_index_html += "</ul>\n</body></html>"
 
 with open("archives/index.html", "w", encoding="utf-8") as f:
